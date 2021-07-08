@@ -1,3 +1,7 @@
+pub mod bot_error;
+mod application_commands;
+mod stat;
+
 use std::env;
 
 use serenity::{
@@ -9,9 +13,7 @@ use serenity::{
             Interaction,
             InteractionResponseType,
             InteractionData,
-            ApplicationCommand,
-            ApplicationCommandOptionType,
-            // ApplicationCommandInteractionData,
+            ApplicationCommandInteractionDataOption,
             // ApplicationCommandInteractionDataOptionValue,
         },
         event::ResumedEvent,
@@ -20,6 +22,9 @@ use serenity::{
     prelude::*,
 };
 
+use crate::application_commands::create_application_commands;
+use stat::get_stat;
+
 struct Handler;
 
 #[async_trait]
@@ -27,7 +32,45 @@ impl EventHandler for Handler {
     async fn interaction_create(&self, ctx: Context, interaction: Interaction) {
         if let Some(InteractionData::ApplicationCommand(ref command)) = interaction.data {
             let content = match command.name.as_str() {
-                "ping" => "pong!".to_string(),
+                "stat" => {
+                    let (player, stat_type, stat_value);
+                    for option in command.options {
+                        match option.name.as_str() {
+                            "player" => player = option.value.unwrap().to_string(),
+                            "stat-type" => stat_type = option.value.unwrap().to_string(),
+                            "stat-value" => stat_value = option.value.unwrap().to_string(),
+                            _ => {},
+                        }
+                    }
+
+                    let stat_result = get_stat(player, stat_type, stat_value).await;
+
+                    if let Err(e) = interaction
+                        .create_interaction_response(&ctx.http, |response| {
+                            response
+                                .kind(InteractionResponseType::ChannelMessageWithSource)
+                                .interaction_response_data(|message| {
+                                    match stat_result {
+                                        Err(e) => message.content(match e {
+
+                                        }),
+                                        Ok(stat) => message.embed(|e| {
+                                            e.author("EstillaStats")
+                                        })
+                                    }
+                                })
+                        })
+                        .await
+                    {
+                        println!("Cannot respond to slash command: {}", e)
+                    }
+
+                    if let Err(e) = get_stat(player, stat_type, stat_value).await {
+                        match e {
+
+                        }
+                    }
+                },
                 _ => "not implemented :(".to_string(),
             };
 
@@ -47,31 +90,14 @@ impl EventHandler for Handler {
     async fn ready(&self, ctx: Context, ready: Ready) {
         println!("Connected as {}", ready.user.name);
 
-        let commands = ApplicationCommand::create_global_application_commands(&ctx.http, |commands| {
-            commands
-                .create_application_command(|command| {
-                    command.name("ping").description("A ping command")
-                })
-                .create_application_command(|command| {
-                    command.name("test").description("test2")
-                        .create_option(|option| {
-                            option.name("test-opt")
-                                .description("test(desc)")
-                                .kind(ApplicationCommandOptionType::String)
-                                .required(true)
-                        })
-                })
-        })
-        .await;
+        // let commands = ApplicationCommand::create_global_application_commands(&ctx.http, |commands| {
+        // })
+        // .await;
 
-        println!("I now have the following slash commands: {:?}", commands);
-
-        let guild = GuildId(689495268185473059).to_partial_guild(&ctx.http).await.expect("aled guild id");
-        
-
-        let cmd = guild 
-            .create_application_command(&ctx.http, |command| {
-                command.name("wonderful_command").description("An amazing command")
+        // println!("I now have the following slash commands: {:?}", commands);
+        let cmd = GuildId(669507869791748117)
+            .create_application_commands(&ctx.http, |commands| {
+                create_application_commands(commands)
             })
             .await;
 

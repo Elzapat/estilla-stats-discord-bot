@@ -7,6 +7,8 @@ edition = "2018"
 
 [dependencies]
 dotenv = "0.15"
+reqwest = "0.11"
+serde = "1.0"
 
 [dependencies.tokio]
 version = "1.6"
