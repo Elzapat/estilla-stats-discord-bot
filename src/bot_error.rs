@@ -1,3 +1,4 @@
+#[derive(Debug)]
 pub enum BotError {
     Error(String),
     ReqwestError(reqwest::Error),

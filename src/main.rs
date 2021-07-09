@@ -1,6 +1,8 @@
 pub mod bot_error;
+pub mod utils;
+pub mod stat;
 mod application_commands;
-mod stat;
+mod leaderboard;
 
 use std::env;
 
@@ -13,8 +15,6 @@ use serenity::{
             Interaction,
             InteractionResponseType,
             InteractionData,
-            ApplicationCommandInteractionDataOption,
-            // ApplicationCommandInteractionDataOptionValue,
         },
         event::ResumedEvent,
         channel::Message,
@@ -22,8 +22,13 @@ use serenity::{
     prelude::*,
 };
 
-use crate::application_commands::create_application_commands;
-use stat::get_stat;
+use crate::{
+    application_commands::create_application_commands,
+    bot_error::BotError,
+    utils::*,
+    leaderboard::get_leaderboard,
+    stat::{ get_stat, get_uuid_from_username },
+};
 
 struct Handler;
 
@@ -31,19 +36,34 @@ struct Handler;
 impl EventHandler for Handler {
     async fn interaction_create(&self, ctx: Context, interaction: Interaction) {
         if let Some(InteractionData::ApplicationCommand(ref command)) = interaction.data {
-            let content = match command.name.as_str() {
+            match command.name.as_str() {
                 "stat" => {
-                    let (player, stat_type, stat_value);
-                    for option in command.options {
-                        match option.name.as_str() {
-                            "player" => player = option.value.unwrap().to_string(),
-                            "stat-type" => stat_type = option.value.unwrap().to_string(),
-                            "stat-value" => stat_value = option.value.unwrap().to_string(),
-                            _ => {},
-                        }
-                    }
+                    let mut options_iter = command.options.iter();
+                    let player = options_iter 
+                        .find(|&x| x.name.as_str() == "player")
+                        .unwrap()
+                        .value.as_ref()
+                        .unwrap()
+                        .to_string()
+                        .replace("\"", "");
+                    let mut stat_type = options_iter
+                        .find(|&x| x.name.as_str() == "stat-type")
+                        .unwrap()
+                        .value.as_ref()
+                        .unwrap()
+                        .to_string()
+                        .replace("\"", "");
+                    let mut stat_value = options_iter
+                        .find(|&x| x.name.as_str() == "stat-value")
+                        .unwrap()
+                        .value.as_ref()
+                        .unwrap()
+                        .to_string()
+                        .replace("\"", "");
 
-                    let stat_result = get_stat(player, stat_type, stat_value).await;
+                    let stat_result = get_stat(&player, &stat_type, &stat_value).await;
+
+                    let uuid_res = get_uuid_from_username(player.clone()).await;
 
                     if let Err(e) = interaction
                         .create_interaction_response(&ctx.http, |response| {
@@ -51,39 +71,66 @@ impl EventHandler for Handler {
                                 .kind(InteractionResponseType::ChannelMessageWithSource)
                                 .interaction_response_data(|message| {
                                     match stat_result {
-                                        Err(e) => message.content(match e {
+                                        Ok(stat) => {
+                                            message.create_embed(|e| {
+                                                e.title(&player);
+                                                if let Ok(uuid) = uuid_res {
+                                                    // e.image(format!("https://crafatar.com/avatars/{}", uuid));
+                                                    e.thumbnail(format!("https://crafatar.com/avatars/{}", uuid));
+                                                }
+                                                make_ascii_titlecase(&mut stat_value);
+                                                make_ascii_titlecase(&mut stat_type);
 
+                                                if stat_value.chars().last().unwrap() != 's' {
+                                                    stat_value = format!("{}s", stat_value);
+                                                }
+                                                let field_name = match stat_type.as_str() {
+                                                    "custom" => stat_value.clone(),
+                                                    "killed by" => format!("{} {}", stat_type, stat_value),
+                                                    _ => format!("{} {}", stat_value, stat_type),
+                                                };
+                                                e.field(field_name, stat.value.to_string(), false);
+                                                e.field("<:copper_ingot:863081302079963136> and text", ":copper_ingot: and text", false);
+
+                                                e.color((200, 255, 0));
+
+                                                e
+                                            })
+                                        }
+                                        Err(e) => message.content(match e {
+                                            BotError::Error(e) => e,
+                                            BotError::ReqwestError(e) => e.to_string(),
                                         }),
-                                        Ok(stat) => message.embed(|e| {
-                                            e.author("EstillaStats")
-                                        })
                                     }
                                 })
                         })
-                        .await
+                    .await
                     {
                         println!("Cannot respond to slash command: {}", e)
                     }
-
-                    if let Err(e) = get_stat(player, stat_type, stat_value).await {
-                        match e {
-
-                        }
-                    }
                 },
-                _ => "not implemented :(".to_string(),
-            };
+                "leaderboard" => {
+                    let mut options_iter = command.options.iter();
+                    let mut stat_type = options_iter
+                        .find(|&x| x.name.as_str() == "stat-type")
+                        .unwrap()
+                        .value.as_ref()
+                        .unwrap()
+                        .to_string()
+                        .replace("\"", "");
+                    let mut stat_value = options_iter
+                        .find(|&x| x.name.as_str() == "stat-value")
+                        .unwrap()
+                        .value.as_ref()
+                        .unwrap()
+                        .to_string()
+                        .replace("\"", "");
 
-            if let Err(e) = interaction 
-                .create_interaction_response(&ctx.http, |response| {
-                    response
-                        .kind(InteractionResponseType::ChannelMessageWithSource)
-                        .interaction_response_data(|message| message.content(content))
-                })
-                .await
-            {
-                println!("Cannot respond to slash command: {}", e);
-            }
+                    let leaderboard_result = get_leaderboard(&stat_type, &stat_value, None).await;
+                    println!("{:?}", leaderboard_result);
+                },
+                _ => {},//"not implemented :(".to_string(),
+            };
         }
     }
 
