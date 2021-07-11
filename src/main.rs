@@ -1,17 +1,24 @@
+#![feature(drain_filter)]
+
 pub mod bot_error;
 pub mod utils;
 pub mod stat;
 mod application_commands;
 mod leaderboard;
+mod scheduled_leaderboards;
+#[cfg(test)]
+mod tests;
 
 use std::env;
 
 use serenity::{
     async_trait,
+    http::client::Http,
     model::{
-        id::GuildId,
+        // id::GuildId,
         gateway::Ready,
         interactions::{
+            ApplicationCommand,
             Interaction,
             InteractionResponseType,
             InteractionData,
@@ -25,9 +32,9 @@ use serenity::{
 use crate::{
     application_commands::create_application_commands,
     bot_error::BotError,
-    utils::*,
-    leaderboard::get_leaderboard,
-    stat::{ get_stat, get_uuid_from_username },
+    leaderboard::{ parse_leaderboard_args, get_leaderboard, create_leaderboard_embed },
+    stat::{ get_stat, parse_stat_args, create_stat_embed },
+    scheduled_leaderboards::schedule_leaderboards,
 };
 
 struct Handler;
@@ -38,32 +45,9 @@ impl EventHandler for Handler {
         if let Some(InteractionData::ApplicationCommand(ref command)) = interaction.data {
             match command.name.as_str() {
                 "stat" => {
-                    let mut options_iter = command.options.iter();
-                    let player = options_iter 
-                        .find(|&x| x.name.as_str() == "player")
-                        .unwrap()
-                        .value.as_ref()
-                        .unwrap()
-                        .to_string()
-                        .replace("\"", "");
-                    let mut stat_type = options_iter
-                        .find(|&x| x.name.as_str() == "stat-type")
-                        .unwrap()
-                        .value.as_ref()
-                        .unwrap()
-                        .to_string()
-                        .replace("\"", "");
-                    let mut stat_value = options_iter
-                        .find(|&x| x.name.as_str() == "stat-value")
-                        .unwrap()
-                        .value.as_ref()
-                        .unwrap()
-                        .to_string()
-                        .replace("\"", "");
+                    let args = parse_stat_args(&command.options);
 
-                    let stat_result = get_stat(&player, &stat_type, &stat_value).await;
-
-                    let uuid_res = get_uuid_from_username(player.clone()).await;
+                    let stat_result = get_stat(&args.player, &args.stat_type, &args.stat_value).await;
 
                     if let Err(e) = interaction
                         .create_interaction_response(&ctx.http, |response| {
@@ -71,35 +55,16 @@ impl EventHandler for Handler {
                                 .kind(InteractionResponseType::ChannelMessageWithSource)
                                 .interaction_response_data(|message| {
                                     match stat_result {
-                                        Ok(stat) => {
-                                            message.create_embed(|e| {
-                                                e.title(&player);
-                                                if let Ok(uuid) = uuid_res {
-                                                    // e.image(format!("https://crafatar.com/avatars/{}", uuid));
-                                                    e.thumbnail(format!("https://crafatar.com/avatars/{}", uuid));
-                                                }
-                                                make_ascii_titlecase(&mut stat_value);
-                                                make_ascii_titlecase(&mut stat_type);
-
-                                                if stat_value.chars().last().unwrap() != 's' {
-                                                    stat_value = format!("{}s", stat_value);
-                                                }
-                                                let field_name = match stat_type.as_str() {
-                                                    "custom" => stat_value.clone(),
-                                                    "killed by" => format!("{} {}", stat_type, stat_value),
-                                                    _ => format!("{} {}", stat_value, stat_type),
-                                                };
-                                                e.field(field_name, stat.value.to_string(), false);
-                                                e.field("<:copper_ingot:863081302079963136> and text", ":copper_ingot: and text", false);
-
-                                                e.color((200, 255, 0));
-
-                                                e
-                                            })
-                                        }
+                                        Ok(stat) => message.create_embed(|e| 
+                                            create_stat_embed(
+                                                stat.value, args.player, stat.uuid,
+                                                args.stat_type, args.stat_value, e
+                                            )
+                                        ),
                                         Err(e) => message.content(match e {
                                             BotError::Error(e) => e,
                                             BotError::ReqwestError(e) => e.to_string(),
+                                            BotError::SerenityError(e) => e.to_string(),
                                         }),
                                     }
                                 })
@@ -110,24 +75,32 @@ impl EventHandler for Handler {
                     }
                 },
                 "leaderboard" => {
-                    let mut options_iter = command.options.iter();
-                    let mut stat_type = options_iter
-                        .find(|&x| x.name.as_str() == "stat-type")
-                        .unwrap()
-                        .value.as_ref()
-                        .unwrap()
-                        .to_string()
-                        .replace("\"", "");
-                    let mut stat_value = options_iter
-                        .find(|&x| x.name.as_str() == "stat-value")
-                        .unwrap()
-                        .value.as_ref()
-                        .unwrap()
-                        .to_string()
-                        .replace("\"", "");
+                    let args = parse_leaderboard_args(&command.options);
 
-                    let leaderboard_result = get_leaderboard(&stat_type, &stat_value, None).await;
-                    println!("{:?}", leaderboard_result);
+                    let leaderboard_result = get_leaderboard(&args.stat_type, &args.stat_value, args.limit).await;
+
+                    if let Err(e) = interaction
+                        .create_interaction_response(&ctx.http, |response| {
+                            response
+                                .kind(InteractionResponseType::ChannelMessageWithSource)
+                                .interaction_response_data(|message| {
+                                    match leaderboard_result {
+                                        Ok(leaderboard) => message.create_embed(|e|
+                                            create_leaderboard_embed(
+                                                leaderboard, &args.stat_type, &args.stat_value, e
+                                            )
+                                        ),
+                                        Err(e) => message.content(match e {
+                                            BotError::Error(e) => e,
+                                            BotError::ReqwestError(e) => e.to_string(),
+                                            BotError::SerenityError(e) => e.to_string(),
+                                        })
+                                    }
+                                })
+                        })
+                    .await {
+                        println!("Cannot respond to slash command: {}", e)
+                    }
                 },
                 _ => {},//"not implemented :(".to_string(),
             };
@@ -137,26 +110,37 @@ impl EventHandler for Handler {
     async fn ready(&self, ctx: Context, ready: Ready) {
         println!("Connected as {}", ready.user.name);
 
-        // let commands = ApplicationCommand::create_global_application_commands(&ctx.http, |commands| {
-        // })
-        // .await;
+        let _ = ApplicationCommand::create_global_application_commands(&ctx.http, |commands| {
+            create_application_commands(commands)
+        })
+        .await;
 
         // println!("I now have the following slash commands: {:?}", commands);
-        let cmd = GuildId(669507869791748117)
-            .create_application_commands(&ctx.http, |commands| {
-                create_application_commands(commands)
-            })
-            .await;
-
-        println!("I created the following guild command: {:#?}", cmd);
+        // let _ = GuildId(669507869791748117)
+        //     .create_application_commands(&ctx.http, |commands| {
+        //         create_application_commands(commands)
+        //     })
+        //     .await;
+        // let cmd = GuildId(587898993917427713)
+        //     .create_application_commands(&ctx.http, |commands| {
+        //         create_application_commands(commands)
+        //     })
+        //     .await;
+        //
+        // println!("I created the following guild command: {:#?}", cmd);
+        //
+        // Start the scheduled leaderboards update
+        // let _leaderboards_future = schedule_leaderboards(&ctx.http);
     }
 
     async fn resume(&self, _: Context, _: ResumedEvent) {
 
     }
 
-    async fn message(&self, _: Context, _msg: Message) {
-
+    async fn message(&self, ctx: Context, msg: Message) {
+        if msg.content == "post_a_random_message" {
+            msg.channel_id.say(&ctx.http, "random message").await.unwrap();
+        } 
     }
 }
 
@@ -166,6 +150,8 @@ async fn main() {
 
     let token = env::var("DISCORD_TOKEN")
         .expect("Expected DISCORD_TOKEN in env");
+
+    let http = Http::new_with_token(&token);
 
     let application_id = env::var("APPLICATION_ID")
         .expect("Expected APPLICATION_ID in env")
@@ -177,6 +163,9 @@ async fn main() {
         .application_id(application_id)
         .await
         .expect("Error creating client");
+
+    // Start the scheduled leaderboards updates
+    let _ = schedule_leaderboards(&http).await;
 
     if let Err(e) = client.start().await {
         println!("Client error: {}", e);

@@ -2,6 +2,7 @@
 pub enum BotError {
     Error(String),
     ReqwestError(reqwest::Error),
+    SerenityError(serenity::prelude::SerenityError),
 }
 
 pub type BotResult<T> = Result<T, BotError>;
@@ -21,5 +22,11 @@ pub type BotResult<T> = Result<T, BotError>;
 impl From<reqwest::Error> for BotError {
     fn from(err: reqwest::Error) -> BotError {
         BotError::ReqwestError(err)
+    }
+}
+
+impl From<serenity::prelude::SerenityError> for BotError {
+    fn from(err: serenity::prelude::SerenityError) -> BotError {
+        BotError::SerenityError(err)
     }
 }
