@@ -38,8 +38,8 @@ pub fn create_application_commands(commands: &mut CreateApplicationCommands) -> 
                 })
                 .create_option(|option| {
                     option
-                        .name("stat-value")
-                        .description("The value of the stat you want (Any block, item or mob. Can be incompatible with the type you chose)")
+                        .name("stat-name")
+                        .description("The name of the stat you want (Any block, item or mob. Can be incompatible with the type you chose)")
                         .required(true)
                         .kind(ApplicationCommandOptionType::String)
                 })
@@ -66,8 +66,8 @@ pub fn create_application_commands(commands: &mut CreateApplicationCommands) -> 
                 })
                 .create_option(|option| {
                     option
-                        .name("stat-value")
-                        .description("The value of the stat you want (Any block, item or mob. Can be incompatible with the type you chose)")
+                        .name("stat-name")
+                        .description("The name of the stat you want (Any block, item or mob. Can be incompatible with the type you chose)")
                         .required(true)
                         .kind(ApplicationCommandOptionType::String)
                 })

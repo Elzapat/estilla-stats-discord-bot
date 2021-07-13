@@ -20,24 +20,24 @@ use crate::{
 #[derive(Debug)]
 struct Leaderboard<'a> {
     stat_type: &'a str,
-    stat_value: &'a str,
+    stat_name: &'a str,
     message_id: u64,
 }
 
 const INTERVAL: std::time::Duration = std::time::Duration::from_secs(60 * 10);
 const CHANNEL_ID: u64 = 863383101841735701;
 const LEADERBOARDS: [Leaderboard; 11] = [
-    Leaderboard { stat_type: "custom", stat_value: "play one minute", message_id: 863385381861064734 },
-    Leaderboard { stat_type: "mined", stat_value: "diamond ore", message_id: 863385396758446114 },
-    Leaderboard { stat_type: "broken", stat_value: "wooden pickaxe", message_id: 863385400893898752 },
-    Leaderboard { stat_type: "custom", stat_value: "jump", message_id: 863385405213376524 },
-    Leaderboard { stat_type: "custom", stat_value: "deaths", message_id: 863385408715882517 },
-    Leaderboard { stat_type: "custom", stat_value: "mob kills", message_id: 863385414315671562 },
-    Leaderboard { stat_type: "custom", stat_value: "aviate one cm", message_id: 863385502768824331 },
-    Leaderboard { stat_type: "custom", stat_value: "walk one cm", message_id: 863385507185819689 },
-    Leaderboard { stat_type: "custom", stat_value: "sprint one cm", message_id: 863385510482935829 },
-    Leaderboard { stat_type: "custom", stat_value: "damage taken", message_id: 863385514055565342 },
-    Leaderboard { stat_type: "custom", stat_value: "damage dealt", message_id: 863385517637632041 },
+    Leaderboard { stat_type: "custom", stat_name: "play one minute", message_id: 863385381861064734 },
+    Leaderboard { stat_type: "mined", stat_name: "diamond ore", message_id: 863385396758446114 },
+    Leaderboard { stat_type: "broken", stat_name: "wooden pickaxe", message_id: 863385400893898752 },
+    Leaderboard { stat_type: "custom", stat_name: "jump", message_id: 863385405213376524 },
+    Leaderboard { stat_type: "custom", stat_name: "deaths", message_id: 863385408715882517 },
+    Leaderboard { stat_type: "custom", stat_name: "mob kills", message_id: 863385414315671562 },
+    Leaderboard { stat_type: "custom", stat_name: "aviate one cm", message_id: 863385502768824331 },
+    Leaderboard { stat_type: "custom", stat_name: "walk one cm", message_id: 863385507185819689 },
+    Leaderboard { stat_type: "custom", stat_name: "sprint one cm", message_id: 863385510482935829 },
+    Leaderboard { stat_type: "custom", stat_name: "damage taken", message_id: 863385514055565342 },
+    Leaderboard { stat_type: "custom", stat_name: "damage dealt", message_id: 863385517637632041 },
 ];
 
 pub async fn schedule_leaderboards(http: impl AsRef<Http> + CacheHttp) -> BotResult<()> {
@@ -61,7 +61,7 @@ async fn update_leaderboards(http: impl AsRef<Http> + CacheHttp) -> BotResult<()
             .await?;
 
         let stats = get_leaderboard(
-            leaderboard.stat_type, leaderboard.stat_value, Some(10)
+            leaderboard.stat_type, leaderboard.stat_name, Some(10)
         ).await?;
 
         msg.edit(http, |message|
@@ -70,7 +70,7 @@ async fn update_leaderboards(http: impl AsRef<Http> + CacheHttp) -> BotResult<()
                 .embed(|e|
                     create_leaderboard_embed(
                         stats, leaderboard.stat_type,
-                        leaderboard.stat_value, e
+                        leaderboard.stat_name, e
                     )
                 )
         ).await?;

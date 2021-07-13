@@ -13,12 +13,12 @@ use num_format::{ Locale, ToFormattedString };
 
 pub struct LeaderboardCommandArgs {
     pub stat_type: String,
-    pub stat_value: String,
+    pub stat_name: String,
     pub limit: Option<i64>,
 }
 
 
-pub async fn get_leaderboard<S>(stat_type: S, stat_value: S, limit: Option<i64>) -> BotResult<Vec<Stat>>
+pub async fn get_leaderboard<S>(stat_type: S, stat_name: S, limit: Option<i64>) -> BotResult<Vec<Stat>>
 where
     S: Into<String> + Clone
 {
@@ -32,11 +32,11 @@ where
     };
 
     let stat_type = name_to_minecraft_id(stat_type.into());
-    let stat_value = name_to_minecraft_id(stat_value.into());
+    let stat_name = name_to_minecraft_id(stat_name.into());
 
     let request = format!(
-        "{}/stats?uuid=all&stat_type={}&stat_value={}",
-        SERVER_ADDRESS, stat_type, stat_value
+        "{}/stats?uuid=all&stat_type={}&stat_name={}",
+        SERVER_ADDRESS, stat_type, stat_name
     );
 
     let mut stats = reqwest::get(request)
@@ -44,7 +44,7 @@ where
         .json::<Vec<Stat>>()
         .await?;
 
-    stats.sort_by(|a, b| b.value.cmp(&a.value));
+    stats.sort_by(|a, b| b.name.cmp(&a.name));
 
     stats.drain((limit as usize)..);
     stats.drain_filter(|s| !s.success);
@@ -74,8 +74,8 @@ pub fn parse_leaderboard_args(
         .unwrap()
         .to_string()
         .replace("\"", "");
-    let stat_value = args_iter
-        .find(|&x| x.name.as_str() == "stat-value")
+    let stat_name = args_iter
+        .find(|&x| x.name.as_str() == "stat-name")
         .unwrap()
         .value.as_ref()
         .unwrap()
@@ -84,21 +84,21 @@ pub fn parse_leaderboard_args(
     let limit = args_iter
         .find(|&x| x.name.as_str() == "limit")
         .and_then(|data| data.value.as_ref())
-        .and_then(|value| value.as_i64());
+        .and_then(|name| name.as_i64());
 
-    LeaderboardCommandArgs { stat_type, stat_value, limit }
+    LeaderboardCommandArgs { stat_type, stat_name, limit }
 }
 
 pub fn create_leaderboard_embed<'a, S>(
     leaderboard: Vec<Stat>,
     stat_type: S,
-    stat_value: S,
+    stat_name: S,
     embed: &'a mut CreateEmbed
 ) -> &'a mut CreateEmbed
 where
     S: Into<String>
 {
-    let stat_title = make_stat_title(&mut stat_type.into(), &mut stat_value.into());
+    let stat_title = make_stat_title(&mut stat_type.into(), &mut stat_name.into());
     embed.title(stat_title.clone());
 
     embed.color((200, 255, 0));
@@ -122,7 +122,7 @@ where
 
     let stats = leaderboard
         .iter()
-        .map(|s| s.value.to_formatted_string(&Locale::en))
+        .map(|s| s.name.to_formatted_string(&Locale::en))
         .collect::<Vec<String>>();
     // let stats_len = longest_length_in_string_vec(&names);
     // stats = stats.iter().map(|stat| format!("{:⠀<1$}", stat, stats_len)).collect();

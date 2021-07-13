@@ -12,7 +12,7 @@ use serenity::{
 pub struct StatCommandArgs {
     pub player: String,
     pub stat_type: String,
-    pub stat_value: String,
+    pub stat_name: String,
 }
 
 #[derive(Debug, Clone, Deserialize)]
@@ -22,10 +22,10 @@ pub struct Stat {
     #[serde(skip_deserializing)]
     pub username: String,
     #[serde(rename = "stat")]
-    pub value: u64,
+    pub name: u64,
 }
 
-pub async fn get_stat<S>(player: S, stat_type: S, stat_value: S) -> BotResult<Stat> 
+pub async fn get_stat<S>(player: S, stat_type: S, stat_name: S) -> BotResult<Stat> 
     where S: Into<String>
 {
     let mut uuid = get_uuid_from_username(player.into()).await?;
@@ -35,22 +35,22 @@ pub async fn get_stat<S>(player: S, stat_type: S, stat_value: S) -> BotResult<St
         uuid = untrim_uuid(uuid);
     }
 
-    // Transform the stat value and the stat type into coorect minecraft ids
+    // Transform the stat name and the stat type into coorect minecraft ids
     let stat_type = name_to_minecraft_id(stat_type.into());
-    let stat_value = name_to_minecraft_id(stat_value.into());
+    let stat_name = name_to_minecraft_id(stat_name.into());
 
-    let stat = fetch_stat(uuid, stat_type, stat_value).await?;
+    let stat = fetch_stat(uuid, stat_type, stat_name).await?;
 
     Ok(stat)
 }
 
-async fn fetch_stat<S>(uuid: S, stat_type: S, stat_value: S) -> BotResult<Stat>
+async fn fetch_stat<S>(uuid: S, stat_type: S, stat_name: S) -> BotResult<Stat>
 where
     S: Into<String>
 {
     let request = format!(
-        "{}/stats?uuid={}&stat_type={}&stat_value={}",
-        SERVER_ADDRESS, uuid.into(), stat_type.into(), stat_value.into()
+        "{}/stats?uuid={}&stat_type={}&stat_name={}",
+        SERVER_ADDRESS, uuid.into(), stat_type.into(), stat_name.into()
     );
 
     let response = reqwest::get(request)
@@ -82,15 +82,15 @@ pub fn parse_stat_args(
         .unwrap()
         .to_string()
         .replace("\"", "");
-    let stat_value = args_iter
-        .find(|&x| x.name.as_str() == "stat-value")
+    let stat_name = args_iter
+        .find(|&x| x.name.as_str() == "stat-name")
         .unwrap()
         .value.as_ref()
         .unwrap()
         .to_string()
         .replace("\"", "");
 
-    StatCommandArgs { player, stat_type, stat_value }
+    StatCommandArgs { player, stat_type, stat_name }
 }
 
 pub fn create_stat_embed<'a, S>(
@@ -98,7 +98,7 @@ pub fn create_stat_embed<'a, S>(
     player: S,
     uuid: S,
     stat_type: S,
-    stat_value: S,
+    stat_name: S,
     embed: &'a mut CreateEmbed
 ) -> &'a mut CreateEmbed
 where
@@ -107,7 +107,7 @@ where
     embed.title(&player.into());
     embed.thumbnail(format!("https://crafatar.com/avatars/{}", uuid.into()));
 
-    let field_name = make_stat_title(&mut stat_type.into(), &mut stat_value.into());
+    let field_name = make_stat_title(&mut stat_type.into(), &mut stat_name.into());
 
     embed.field(field_name, stat.to_formatted_string(&Locale::en), false);
 

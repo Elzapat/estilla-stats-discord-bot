@@ -2,7 +2,7 @@ use crate::bot_error::{ BotResult, BotError };
 use serde::Deserialize;
 use futures::{ stream, StreamExt };
 
-pub const SERVER_ADDRESS: &str = "http://77.75.125.164:8000";
+pub const SERVER_ADDRESS: &str = "https://api.estillacraft.net";
 
 pub fn make_ascii_titlecase(s: &mut str) -> String {
     if let Some(r) = s.get_mut(0..1) {
@@ -16,15 +16,15 @@ pub fn name_to_minecraft_id(name: String) -> String {
     format!("minecraft:{}", name.replace(" ", "_").to_lowercase())
 }
 
-pub fn make_stat_title(mut stat_type: &mut String, mut stat_value: &mut String) -> String {
-    if stat_value.chars().last().unwrap() != 's' && stat_type != "custom" {
-        stat_value.push_str("s");
+pub fn make_stat_title(mut stat_type: &mut String, mut stat_name: &mut String) -> String {
+    if stat_name.chars().last().unwrap() != 's' && stat_type != "custom" {
+        stat_name.push_str("s");
     }
 
     match stat_type.as_str() {
-        "custom" => make_ascii_titlecase(&mut stat_value),
-        "killed by" => format!("{} {}", make_ascii_titlecase(&mut stat_type), stat_value),
-        _ => format!("{} {}", make_ascii_titlecase(&mut stat_value), stat_type),
+        "custom" => make_ascii_titlecase(&mut stat_name),
+        "killed by" => format!("{} {}", make_ascii_titlecase(&mut stat_type), stat_name),
+        _ => format!("{} {}", make_ascii_titlecase(&mut stat_name), stat_type),
     }
 }
 

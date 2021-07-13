@@ -47,7 +47,7 @@ impl EventHandler for Handler {
                 "stat" => {
                     let args = parse_stat_args(&command.options);
 
-                    let stat_result = get_stat(&args.player, &args.stat_type, &args.stat_value).await;
+                    let stat_result = get_stat(&args.player, &args.stat_type, &args.stat_name).await;
 
                     if let Err(e) = interaction
                         .create_interaction_response(&ctx.http, |response| {
@@ -57,8 +57,8 @@ impl EventHandler for Handler {
                                     match stat_result {
                                         Ok(stat) => message.create_embed(|e| 
                                             create_stat_embed(
-                                                stat.value, args.player, stat.uuid,
-                                                args.stat_type, args.stat_value, e
+                                                stat.name, args.player, stat.uuid,
+                                                args.stat_type, args.stat_name, e
                                             )
                                         ),
                                         Err(e) => message.content(match e {
@@ -77,7 +77,7 @@ impl EventHandler for Handler {
                 "leaderboard" => {
                     let args = parse_leaderboard_args(&command.options);
 
-                    let leaderboard_result = get_leaderboard(&args.stat_type, &args.stat_value, args.limit).await;
+                    let leaderboard_result = get_leaderboard(&args.stat_type, &args.stat_name, args.limit).await;
 
                     if let Err(e) = interaction
                         .create_interaction_response(&ctx.http, |response| {
@@ -87,7 +87,7 @@ impl EventHandler for Handler {
                                     match leaderboard_result {
                                         Ok(leaderboard) => message.create_embed(|e|
                                             create_leaderboard_embed(
-                                                leaderboard, &args.stat_type, &args.stat_value, e
+                                                leaderboard, &args.stat_type, &args.stat_name, e
                                             )
                                         ),
                                         Err(e) => message.content(match e {
@@ -165,7 +165,7 @@ async fn main() {
         .expect("Error creating client");
 
     // Start the scheduled leaderboards updates
-    let _ = schedule_leaderboards(&http).await;
+    let _ = schedule_leaderboards(&http);
 
     if let Err(e) = client.start().await {
         println!("Client error: {}", e);
