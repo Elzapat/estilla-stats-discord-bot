@@ -57,7 +57,7 @@ impl EventHandler for Handler {
                                     match stat_result {
                                         Ok(stat) => message.create_embed(|e| 
                                             create_stat_embed(
-                                                stat.name, args.player, stat.uuid,
+                                                stat.value, args.player, stat.uuid,
                                                 args.stat_type, args.stat_name, e
                                             )
                                         ),
@@ -115,6 +115,23 @@ impl EventHandler for Handler {
         })
         .await;
 
+        // let estilla = ctx.http.get_guild(587898993917427713).await.unwrap();
+        // let test_server = ctx.http.get_guild(669507869791748117).await.unwrap();
+        //
+        // println!("{:?}", estilla.integrations(&ctx.http).await);
+        //
+        // for integration in estilla.integrations(&ctx.http).await.unwrap().iter() {
+        //     if let Err(e) = estilla.start_integration_sync(&ctx.http, integration.id).await {
+        //         println!("error syncing: {:?}", e);
+        //     }
+        // }
+        //
+        // for integration in test_server.integrations(&ctx.http).await.unwrap().iter() {
+        //     if let Err(e) = test_server.start_integration_sync(&ctx.http, integration.id).await {
+        //         println!("error syncing: {:?}", e);
+        //     }
+        // }
+
         // println!("I now have the following slash commands: {:?}", commands);
         // let _ = GuildId(669507869791748117)
         //     .create_application_commands(&ctx.http, |commands| {
@@ -165,9 +182,11 @@ async fn main() {
         .expect("Error creating client");
 
     // Start the scheduled leaderboards updates
-    let _ = schedule_leaderboards(&http);
+    let _ = schedule_leaderboards(&http); 
 
     if let Err(e) = client.start().await {
         println!("Client error: {}", e);
     }
+    //
+    // future.await.unwrap();
 }

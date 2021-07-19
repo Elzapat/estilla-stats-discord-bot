@@ -22,7 +22,7 @@ pub struct Stat {
     #[serde(skip_deserializing)]
     pub username: String,
     #[serde(rename = "stat")]
-    pub name: u64,
+    pub value: u64,
 }
 
 pub async fn get_stat<S>(player: S, stat_type: S, stat_name: S) -> BotResult<Stat> 
@@ -102,14 +102,19 @@ pub fn create_stat_embed<'a, S>(
     embed: &'a mut CreateEmbed
 ) -> &'a mut CreateEmbed
 where
-    S: Into<String>
+    S: Into<String> + Clone
 {
     embed.title(&player.into());
     embed.thumbnail(format!("https://crafatar.com/avatars/{}", uuid.into()));
 
-    let field_name = make_stat_title(&mut stat_type.into(), &mut stat_name.into());
+    let field_name = make_stat_title(&mut stat_type.into(), &mut stat_name.clone().into());
 
-    embed.field(field_name, stat.to_formatted_string(&Locale::en), false);
+    embed.field(field_name, if stat_name.into() == "play one minute" {
+        minecraft_ticks_to_formatted_time(stat)
+    } else {
+        stat.to_formatted_string(&Locale::en)
+    }, false);
+
 
     embed.color((200, 255, 0));
 

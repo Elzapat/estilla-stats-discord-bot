@@ -44,7 +44,7 @@ where
         .json::<Vec<Stat>>()
         .await?;
 
-    stats.sort_by(|a, b| b.name.cmp(&a.name));
+    stats.sort_by(|a, b| b.value.cmp(&a.value));
 
     stats.drain((limit as usize)..);
     stats.drain_filter(|s| !s.success);
@@ -96,9 +96,9 @@ pub fn create_leaderboard_embed<'a, S>(
     embed: &'a mut CreateEmbed
 ) -> &'a mut CreateEmbed
 where
-    S: Into<String>
+    S: Into<String> + Copy
 {
-    let stat_title = make_stat_title(&mut stat_type.into(), &mut stat_name.into());
+    let stat_title = make_stat_title(&mut stat_type.into(), &mut stat_name.clone().into());
     embed.title(stat_title.clone());
 
     embed.color((200, 255, 0));
@@ -111,32 +111,19 @@ where
             _ => i.to_string(),
         }
     }).collect::<Vec<String>>();
-    // let ranks_len: usize = 2;
-    // ranks = ranks.iter().map(|rank| format!("{:⠀<1$}", rank, ranks_len)).collect();
 
     let names = leaderboard.iter().map(|s| {
         s.username.clone()
     }).collect::<Vec<String>>();
-    // let names_len = longest_length_in_string_vec(&names);
-    // names = names.iter().map(|name| format!("{:⠀<1$}", name, names_len)).collect();
-
+    //
     let stats = leaderboard
         .iter()
-        .map(|s| s.name.to_formatted_string(&Locale::en))
+        .map(|s| if stat_name.into() == "play one minute" {
+            minecraft_ticks_to_formatted_time(s.value)
+        } else {
+            s.value.to_formatted_string(&Locale::en)
+        })
         .collect::<Vec<String>>();
-    // let stats_len = longest_length_in_string_vec(&names);
-    // stats = stats.iter().map(|stat| format!("{:⠀<1$}", stat, stats_len)).collect();
-
-    // embed.field(
-    //     "test",
-    //     izip!(ranks, names, stats)
-    //         .map(|(rank, name, stat)| { 
-    //             format!("{}{}{}", rank, name, stat)
-    //         })
-    //         .collect::<Vec<String>>()
-    //         .join("\n"),
-    //     true
-    // );
 
     embed.fields(vec![
         ("Rank", ranks.join("\n"), true),

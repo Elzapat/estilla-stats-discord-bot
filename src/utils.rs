@@ -122,3 +122,21 @@ pub fn longest_length_in_string_vec(source: &Vec<String>) -> usize {
         }
     })
 }
+
+pub fn minecraft_ticks_to_formatted_time(ticks: u64) -> String {
+    let mut seconds = ticks / 20;
+    let mut minutes = seconds / 60;
+    let mut hours = minutes / 60;
+    let days = hours / 24;
+
+    seconds = seconds % 60;
+    minutes = minutes % 60;
+    hours = hours % 24;
+
+    let days = if days > 0 { format!("{}d ", days) } else { "".to_string() }; 
+    let hours = if hours > 0 && minutes > 0 { format!("{}h ", hours) } else { "".to_string() };
+    let minutes = if minutes > 0 && seconds > 0 { format!("{:02}m ", minutes) } else { "".to_string() };
+    let seconds = format!("{:02}s", seconds);
+
+    format!("{}{}{}{}", days, hours, minutes, seconds)
+}
