@@ -15,7 +15,7 @@ use serenity::{
     async_trait,
     http::client::Http,
     model::{
-        // id::GuildId,
+        id::ChannelId,
         gateway::Ready,
         interactions::{
             ApplicationCommand,
@@ -35,6 +35,7 @@ use crate::{
     leaderboard::{ parse_leaderboard_args, get_leaderboard, create_leaderboard_embed },
     stat::{ get_stat, parse_stat_args, create_stat_embed },
     scheduled_leaderboards::schedule_leaderboards,
+    utils::LEADERBOARDS_CHANNEL,
 };
 
 struct Handler;
@@ -114,6 +115,14 @@ impl EventHandler for Handler {
             create_application_commands(commands)
         })
         .await;
+
+        let mut info_msg: Message = ChannelId(LEADERBOARDS_CHANNEL)
+            .message(&ctx.http, 863385529831260221)
+            .await
+            .unwrap();
+        let _ = info_msg.edit(&ctx.http, |message| {
+            message.content("This is the leaderboards channel")
+        }).await;
 
         // let estilla = ctx.http.get_guild(587898993917427713).await.unwrap();
         // let test_server = ctx.http.get_guild(669507869791748117).await.unwrap();
