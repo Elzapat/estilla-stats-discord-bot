@@ -24,7 +24,7 @@ struct Leaderboard<'a> {
     message_id: u64,
 }
 
-const INTERVAL: std::time::Duration = std::time::Duration::from_secs(/* 60 *  */10);
+const INTERVAL: std::time::Duration = std::time::Duration::from_secs(60 * 10);
 const CHANNEL_ID: u64 = 863383101841735701;
 const LEADERBOARDS: [Leaderboard; 11] = [
     Leaderboard { stat_type: "custom", stat_name: "play one minute", message_id: 863385381861064734 },
@@ -40,8 +40,7 @@ const LEADERBOARDS: [Leaderboard; 11] = [
     Leaderboard { stat_type: "custom", stat_name: "damage dealt", message_id: 863385517637632041 },
 ];
 
-pub async fn schedule_leaderboards(http: impl AsRef<Http> + CacheHttp) -> BotResult<()> {
-    println!("hello");
+pub async fn schedule_leaderboards(http: impl AsRef<Http> + CacheHttp + 'static) -> BotResult<()> {
     // Update leaderboards every ten minutes
     let mut interval_timer = tokio::time::interval(INTERVAL);
 
