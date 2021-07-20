@@ -46,7 +46,6 @@ pub async fn schedule_leaderboards(http: impl AsRef<Http> + CacheHttp + 'static)
 
     loop {
         interval_timer.tick().await;
-    println!("test");
         if let Err(e) = update_leaderboards(&http).await {
             println!("Error updating scoreboards: {:?}", e);
         }
