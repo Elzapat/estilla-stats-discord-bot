@@ -111,13 +111,13 @@ impl EventHandler for Handler {
     async fn ready(&self, ctx: Context, ready: Ready) {
         println!("Connected as {}", ready.user.name);
 
-        /*
-        let slash_commands = ApplicationCommand::create_global_application_commands(&ctx.http, |commands| {
+        let _slash_commands = ApplicationCommand::create_global_application_commands(&ctx.http, |commands| {
             create_application_commands(commands)
         })
         .await
         .unwrap();
 
+        /*
         let estilla = ctx.http.get_guild(587898993917427713).await.unwrap();
         let test_server = ctx.http.get_guild(669507869791748117).await.unwrap();
 
@@ -146,7 +146,7 @@ impl EventHandler for Handler {
             .message(&ctx.http, 863385529831260221)
             .await
             .unwrap();
-        let _ = info_msg.edit(&ctx.http, |message| {
+        info_msg.edit(&ctx.http, |message| {
             message.content("\n
                 **Welcome to the stats leaderboards channel!**\n\
                 In this channel you can see leaderboards for various Minecraft \
@@ -159,7 +159,9 @@ impl EventHandler for Handler {
                 Sadly those leaderboards are barely readable on mobile and \
                 a solution has yet to be found. Hope you enjoy nonetheless. \
             ")
-        }).await;
+        })
+        .await
+        .unwrap();
     }
 
     async fn resume(&self, _: Context, _: ResumedEvent) {
