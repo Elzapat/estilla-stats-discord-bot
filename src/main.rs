@@ -111,10 +111,36 @@ impl EventHandler for Handler {
     async fn ready(&self, ctx: Context, ready: Ready) {
         println!("Connected as {}", ready.user.name);
 
-        let _ = ApplicationCommand::create_global_application_commands(&ctx.http, |commands| {
+        /*
+        let slash_commands = ApplicationCommand::create_global_application_commands(&ctx.http, |commands| {
             create_application_commands(commands)
         })
-        .await;
+        .await
+        .unwrap();
+
+        let estilla = ctx.http.get_guild(587898993917427713).await.unwrap();
+        let test_server = ctx.http.get_guild(669507869791748117).await.unwrap();
+
+        for command in slash_commands.iter() {
+            for o in command.options.iter() {
+                println!("{}, {}", command.name, o.name);
+                if &o.name == "stat-value" {
+                    estilla.delete_application_command(&ctx.http, command.id).await.unwrap();
+                    test_server.delete_application_command(&ctx.http, command.id).await.unwrap();
+                    break;
+                }
+            }
+        }
+
+        let guild_commands = ctx.http.get_guild_application_commands(669507869791748117).await.unwrap();
+        for command in guild_commands.iter() {
+            for o in command.options.iter() {
+                if &o.name == "stat-value" {
+                    ctx.http.delete_guild_application_command(669507869791748117, *command.id.as_u64()).await.unwrap();
+                }
+            }
+        }
+        */
 
         let mut info_msg: Message = ChannelId(LEADERBOARDS_CHANNEL)
             .message(&ctx.http, 863385529831260221)
@@ -123,40 +149,6 @@ impl EventHandler for Handler {
         let _ = info_msg.edit(&ctx.http, |message| {
             message.content("This is the leaderboards channel")
         }).await;
-
-        // let estilla = ctx.http.get_guild(587898993917427713).await.unwrap();
-        // let test_server = ctx.http.get_guild(669507869791748117).await.unwrap();
-        //
-        // println!("{:?}", estilla.integrations(&ctx.http).await);
-        //
-        // for integration in estilla.integrations(&ctx.http).await.unwrap().iter() {
-        //     if let Err(e) = estilla.start_integration_sync(&ctx.http, integration.id).await {
-        //         println!("error syncing: {:?}", e);
-        //     }
-        // }
-        //
-        // for integration in test_server.integrations(&ctx.http).await.unwrap().iter() {
-        //     if let Err(e) = test_server.start_integration_sync(&ctx.http, integration.id).await {
-        //         println!("error syncing: {:?}", e);
-        //     }
-        // }
-
-        // println!("I now have the following slash commands: {:?}", commands);
-        // let _ = GuildId(669507869791748117)
-        //     .create_application_commands(&ctx.http, |commands| {
-        //         create_application_commands(commands)
-        //     })
-        //     .await;
-        // let cmd = GuildId(587898993917427713)
-        //     .create_application_commands(&ctx.http, |commands| {
-        //         create_application_commands(commands)
-        //     })
-        //     .await;
-        //
-        // println!("I created the following guild command: {:#?}", cmd);
-        //
-        // Start the scheduled leaderboards update
-        // let _leaderboards_future = schedule_leaderboards(&ctx.http);
     }
 
     async fn resume(&self, _: Context, _: ResumedEvent) {
