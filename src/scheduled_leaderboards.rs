@@ -25,7 +25,7 @@ struct Leaderboard<'a> {
     message_id: u64,
 }
 
-const INTERVAL: std::time::Duration = std::time::Duration::from_secs(60 * 10);
+const INTERVAL: std::time::Duration = std::time::Duration::from_secs(60 * 5);
 const LEADERBOARDS: [Leaderboard; 12] = [
     Leaderboard { stat_type: "mined", stat_name: "diamond ore", message_id: 863385396758446114 },
     Leaderboard { stat_type: "broken", stat_name: "wooden pickaxe", message_id: 863385400893898752 },

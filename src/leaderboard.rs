@@ -46,7 +46,9 @@ where
 
     stats.sort_by(|a, b| b.value.cmp(&a.value));
 
-    stats.drain((limit as usize)..);
+    if stats.len() > limit as usize {
+        stats.drain((limit as usize)..);
+    }
     stats.drain_filter(|s| !s.success);
 
     let mut uuids = vec![];
@@ -103,7 +105,7 @@ where
 
     embed.color((200, 255, 0));
 
-    let ranks = (1..leaderboard.len() + 1).map(|i| {
+    let mut ranks = (1..leaderboard.len() + 1).map(|i| {
         match i {
             1 => "<:gold_ingot:863081302076424223>".to_string(),
             2 => "<:iron_ingot:863081302005514260>".to_string(),
@@ -111,12 +113,18 @@ where
             _ => i.to_string(),
         }
     }).collect::<Vec<String>>();
+    if ranks.is_empty() {
+        ranks.push("‎".to_string());
+    }
 
-    let names = leaderboard.iter().map(|s| {
+    let mut names = leaderboard.iter().map(|s| {
         s.username.clone()
     }).collect::<Vec<String>>();
-    //
-    let stats = leaderboard
+    if names.is_empty() {
+        names.push("‎".to_string());
+    }
+
+    let mut stats = leaderboard
         .iter()
         .map(|s| if stat_name.into() == "play time" {
             minecraft_ticks_to_formatted_time(s.value)
@@ -124,6 +132,9 @@ where
             s.value.to_formatted_string(&Locale::en)
         })
         .collect::<Vec<String>>();
+    if stats.is_empty() {
+        stats.push("‎".to_string());
+    }
 
     embed.fields(vec![
         ("Rank", ranks.join("\n"), true),
