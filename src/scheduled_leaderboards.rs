@@ -37,7 +37,7 @@ const LEADERBOARDS: [Leaderboard; 12] = [
     Leaderboard { stat_type: "custom", stat_name: "sprint one cm", message_id: 863385510482935829 },
     Leaderboard { stat_type: "custom", stat_name: "damage taken", message_id: 863385514055565342 },
     Leaderboard { stat_type: "custom", stat_name: "damage dealt", message_id: 863385517637632041 },
-    Leaderboard { stat_type: "custom", stat_name: "play one minute", message_id: 863385525107949618 },
+    Leaderboard { stat_type: "custom", stat_name: "play time", message_id: 863385525107949618 },
     Leaderboard { stat_type: "custom", stat_name: "interact with crafting table", message_id: 863385525129052170 },
 ];
 

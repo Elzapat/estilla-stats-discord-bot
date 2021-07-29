@@ -109,7 +109,7 @@ where
 
     let field_name = make_stat_title(&mut stat_type.into(), &mut stat_name.clone().into());
 
-    embed.field(field_name, if stat_name.into() == "play one minute" {
+    embed.field(field_name, if stat_name.into() == "play time" {
         minecraft_ticks_to_formatted_time(stat)
     } else {
         stat.to_formatted_string(&Locale::en)

@@ -118,7 +118,7 @@ where
     //
     let stats = leaderboard
         .iter()
-        .map(|s| if stat_name.into() == "play one minute" {
+        .map(|s| if stat_name.into() == "play time" {
             minecraft_ticks_to_formatted_time(s.value)
         } else {
             s.value.to_formatted_string(&Locale::en)
