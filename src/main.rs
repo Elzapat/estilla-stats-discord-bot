@@ -148,14 +148,14 @@ impl EventHandler for Handler {
             .unwrap();
         info_msg.edit(&ctx.http, |message| {
             message.content("\n
-                **Welcome to the stats leaderboards channel!**\n\
+                **Welcome to the stats leaderboards channel!**\n\n\
                 In this channel you can see leaderboards for various Minecraft \
                 statistics. Those are the stats for the current EstillaCraft \
-                season.\n\
-                The leaderboards are updated every 10 minutes, but remember that your \
-                stats are only updated when you log off the server!\n\
+                season.\n\n\
+                The leaderboards are updated every 5 minutes, but remember that your \
+                stats are only updated when you log off the server!\n\n\
                 The displayed stats can be changed and if you want a certain \
-                stat to be displayed, you can ask Elzapat to update it.\n\
+                stat to be displayed, you can ask Elzapat to update it.\n\n\
                 Sadly those leaderboards are barely readable on mobile and \
                 a solution has yet to be found. Hope you enjoy nonetheless. \
             ")
