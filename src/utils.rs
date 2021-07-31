@@ -136,8 +136,8 @@ pub fn minecraft_ticks_to_formatted_time(ticks: u64) -> String {
 
     let days_s = if days > 0 { format!("{}d ", days) } else { "".to_string() }; 
     let hours_s = if days > 0 || hours > 0 { format!("{}h ", hours) } else { "".to_string() };
-    let minutes_s = if days > 0 || hours > 0 || minutes > 0 { format!("{:02}m ", minutes) } else { "".to_string() };
-    let seconds_s = format!("{:02}s", seconds);
+    let minutes_s = if days > 0 || hours > 0 || minutes > 0 { format!("{}m ", minutes) } else { "".to_string() };
+    let seconds_s = format!("{}s", seconds);
 
     format!("{}{}{}{}", days_s, hours_s, minutes_s, seconds_s)
 }
