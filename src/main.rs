@@ -85,6 +85,7 @@ impl EventHandler for Handler {
                             response
                                 .kind(InteractionResponseType::ChannelMessageWithSource)
                                 .interaction_response_data(|message| {
+                                    println!("leaderboard_result = {:?}", leaderboard_result);
                                     match leaderboard_result {
                                         Ok(leaderboard) => message.create_embed(|e|
                                             create_leaderboard_embed(

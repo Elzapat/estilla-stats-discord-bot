@@ -53,15 +53,18 @@ where
         SERVER_ADDRESS, uuid.into(), stat_type.into(), stat_name.into()
     );
 
-    let response = reqwest::get(request)
+    let mut response = reqwest::get(request)
         .await?
         .json::<Vec<Stat>>()
         .await?;
 
-    match response[0].success {
-        true => Ok(response[0].clone()),
-        false => Err(BotError::Error(response[0].uuid.clone()))
-    }
+    // match response[0].success {
+    //     true => Ok(response[0].clone()),
+    //     false => Err(BotError::Error(response[0].uuid.clone()))
+    // }
+    response
+        .pop()
+        .ok_or(BotError::Error("Missing API response".to_string()))
 }
 
 pub fn parse_stat_args(
