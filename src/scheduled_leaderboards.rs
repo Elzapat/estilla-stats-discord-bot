@@ -18,7 +18,10 @@ use crate::{
     utils::LEADERBOARDS_CHANNEL,
 };
 
-#[derive(Debug)]
+use serde::Deserialize;
+use std::fs;
+
+#[derive(Debug, Deserialize)]
 struct Leaderboard<'a> {
     stat_type: &'a str,
     stat_name: &'a str,
@@ -26,35 +29,27 @@ struct Leaderboard<'a> {
 }
 
 const INTERVAL: std::time::Duration = std::time::Duration::from_secs(60 * 5);
-const LEADERBOARDS: [Leaderboard; 12] = [
-    Leaderboard { stat_type: "mined", stat_name: "diamond ore", message_id: 863385396758446114 },
-    Leaderboard { stat_type: "broken", stat_name: "wooden pickaxe", message_id: 863385400893898752 },
-    Leaderboard { stat_type: "custom", stat_name: "jump", message_id: 863385405213376524 },
-    Leaderboard { stat_type: "custom", stat_name: "deaths", message_id: 863385408715882517 },
-    Leaderboard { stat_type: "custom", stat_name: "mob kills", message_id: 863385414315671562 },
-    Leaderboard { stat_type: "custom", stat_name: "aviate one cm", message_id: 863385502768824331 },
-    Leaderboard { stat_type: "custom", stat_name: "walk one cm", message_id: 863385507185819689 },
-    Leaderboard { stat_type: "custom", stat_name: "sprint one cm", message_id: 863385510482935829 },
-    Leaderboard { stat_type: "custom", stat_name: "damage taken", message_id: 863385514055565342 },
-    Leaderboard { stat_type: "custom", stat_name: "damage dealt", message_id: 863385517637632041 },
-    Leaderboard { stat_type: "custom", stat_name: "play time", message_id: 863385525107949618 },
-    Leaderboard { stat_type: "custom", stat_name: "interact with crafting table", message_id: 863385525129052170 },
-];
 
 pub async fn schedule_leaderboards(http: impl AsRef<Http> + CacheHttp + 'static) -> BotResult<()> {
+    let leaderboards = fs::read_to_string("leaderboards.ron")?;
+    let leaderboards: Vec<Leaderboard> = ron::de::from_str(&leaderboards)?;
+
     // Update leaderboards every ten minutes
     let mut interval_timer = tokio::time::interval(INTERVAL);
 
     loop {
         interval_timer.tick().await;
-        if let Err(e) = update_leaderboards(&http).await {
+        if let Err(e) = update_leaderboards(&http, &leaderboards).await {
             println!("Error updating scoreboards: {:?}", e);
         }
     }
 }
 
-async fn update_leaderboards(http: impl AsRef<Http> + CacheHttp) -> BotResult<()> {
-    for leaderboard in LEADERBOARDS.iter() {
+async fn update_leaderboards(
+    http: impl AsRef<Http> + CacheHttp,
+    leaderboards: &Vec<Leaderboard<'_>>
+) -> BotResult<()> {
+    for leaderboard in leaderboards.iter() {
         let http = &http;
 
         let mut msg: Message = ChannelId(LEADERBOARDS_CHANNEL)

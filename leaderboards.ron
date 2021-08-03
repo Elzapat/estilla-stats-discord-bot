@@ -1,0 +1,62 @@
+[
+    (
+        stat_type: "mined",
+        stat_name: "diamond ore",
+        message_id: 863385396758446114,
+    ),
+    (
+        stat_type: "broken",
+        stat_name: "damage taken",
+        message_id: 863385400893898752,
+    ),
+    (
+        stat_type: "custom",
+        stat_name: "damage dealt",
+        message_id: 863385405213376524,
+    ),
+    (
+        stat_type: "custom",
+        stat_name: "mob kills",
+        message_id: 863385408715882517,
+    ),
+    (
+        stat_type: "custom",
+        stat_name: "boat one cm",
+        message_id: 863385414315671562,
+    ),
+    (
+        stat_type: "custom",
+        stat_name: "jump",
+        message_id: 863385502768824331,
+    ),
+    (
+        stat_type: "custom",
+        stat_name: "climb one cm",
+        message_id: 863385507185819689,
+    ),
+    (
+        stat_type: "custom",
+        stat_name: "walk one cm",
+        message_id: 863385510482935829,
+    ),
+    (
+        stat_type: "custom",
+        stat_name: "sprint one cm",
+        message_id: 863385514055565342,
+    ),
+    (
+        stat_type: "custom",
+        stat_name: "swim one cm",
+        message_id: 863385517637632041,
+    ),
+    (
+        stat_type: "custom",
+        stat_name: "deaths",
+        message_id: 863385525107949618,
+    ),
+    (
+        stat_type: "custom",
+        stat_name: "play time",
+        message_id: 863385525129052170,
+    ),
+]

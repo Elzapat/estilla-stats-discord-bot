@@ -31,7 +31,6 @@ use serenity::{
 
 use crate::{
     application_commands::create_application_commands,
-    bot_error::BotError,
     leaderboard::{ parse_leaderboard_args, get_leaderboard, create_leaderboard_embed },
     stat::{ get_stat, parse_stat_args, create_stat_embed },
     scheduled_leaderboards::schedule_leaderboards,
@@ -62,11 +61,7 @@ impl EventHandler for Handler {
                                                 args.stat_type, args.stat_name, e
                                             )
                                         ),
-                                        Err(e) => message.content(match e {
-                                            BotError::Error(e) => e,
-                                            BotError::ReqwestError(e) => e.to_string(),
-                                            BotError::SerenityError(e) => e.to_string(),
-                                        }),
+                                        Err(e) => message.content(e),
                                     }
                                 })
                         })
@@ -92,11 +87,7 @@ impl EventHandler for Handler {
                                                 leaderboard, &args.stat_type, &args.stat_name, e
                                             )
                                         ),
-                                        Err(e) => message.content(match e {
-                                            BotError::Error(e) => e,
-                                            BotError::ReqwestError(e) => e.to_string(),
-                                            BotError::SerenityError(e) => e.to_string(),
-                                        })
+                                        Err(e) => message.content(e)
                                     }
                                 })
                         })
