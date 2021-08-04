@@ -58,5 +58,6 @@
         stat_type: "custom",
         stat_name: "play time",
         message_id: 863385525129052170,
+        limit: Some(25),
     ),
 ]

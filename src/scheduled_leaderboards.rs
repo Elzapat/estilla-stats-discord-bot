@@ -26,6 +26,7 @@ struct Leaderboard<'a> {
     stat_type: &'a str,
     stat_name: &'a str,
     message_id: u64,
+    limit: Option<i64>,
 }
 
 const INTERVAL: std::time::Duration = std::time::Duration::from_secs(60 * 5);
@@ -57,7 +58,7 @@ async fn update_leaderboards(
             .await?;
 
         let stats = get_leaderboard(
-            leaderboard.stat_type, leaderboard.stat_name, Some(10)
+            leaderboard.stat_type, leaderboard.stat_name, leaderboard.limit
         ).await?;
 
         msg.edit(http, |message|
