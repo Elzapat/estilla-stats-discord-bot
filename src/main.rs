@@ -80,7 +80,7 @@ impl EventHandler for Handler {
                             response
                                 .kind(InteractionResponseType::ChannelMessageWithSource)
                                 .interaction_response_data(|message| {
-                                    println!("leaderboard_result = {:?}", leaderboard_result);
+                                    // println!("leaderboard_result = {:?}", leaderboard_result);
                                     match leaderboard_result {
                                         Ok(leaderboard) => message.create_embed(|e|
                                             create_leaderboard_embed(
@@ -187,7 +187,7 @@ async fn main() {
         .await
         .expect("Error creating client");
 
-    let _future = tokio::task::spawn(schedule_leaderboards(http));
+    // let _future = tokio::task::spawn(schedule_leaderboards(http));
 
     if let Err(e) = client.start().await {
         println!("Client error: {}", e);

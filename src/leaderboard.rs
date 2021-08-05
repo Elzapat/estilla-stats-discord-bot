@@ -27,7 +27,7 @@ where
         Some(l) => match l {
             0 => 1,
             1..=25 => l,
-            _ => 25,     
+            _ => 25,
         }
     };
 
@@ -107,10 +107,11 @@ where
 
     let mut ranks = (1..leaderboard.len() + 1).map(|i| {
         match i {
-            1 => "<:gold_ingot:863081302076424223>".to_string(),
-            2 => "<:iron_ingot:863081302005514260>".to_string(),
-            3 => "<:copper_ingot:863081302079963136>".to_string(),
-            _ => i.to_string(),
+            // 1 => "<:gold_ingot:863081302076424223>".to_string(),
+            // 2 => "<:iron_ingot:863081302005514260>".to_string(),
+            // 3 => "<:copper_ingot:863081302079963136>".to_string(),
+            1..=9 => format!("{}  ", i),
+            _ => format!("{} ", i),
         }
     }).collect::<Vec<String>>();
     if ranks.is_empty() {
@@ -136,11 +137,36 @@ where
         stats.push("‎".to_string());
     }
 
+    let longest = names.iter().fold(0, |acc, name|
+        if name.len() > acc { name.len() } else { acc }
+    );
+
+    let mut field_value = String::new();
+    for i in 0..names.len() {
+        field_value = format!("{}`{} {:<width$}  {}`\n", field_value, ranks[i], names[i], stats[i], width = longest);
+    }
+
+    embed.field("field", field_value, false);
+
+    /*
+    let mut fields = vec![];
+    let mut titles = vec![];
+    for (rank, name) in ranks.iter().zip(names.iter()) {
+        titles.push(format!("{}{}", rank, name));
+    }
+    for (title, stat) in titles.iter().zip(stats.iter()) {
+        fields.push((title, stat, false));
+    }
+    embed.fields(fields);
+    */
+
+    /*
     embed.fields(vec![
         ("Rank", ranks.join("\n"), true),
         ("Username", names.join("\n"), true),
         (stat_title.as_str(), stats.join("\n"), true)
     ]);
+    */
 
     embed.footer(|f| f.text("This is not meant to be viewed on mobile"));
 
