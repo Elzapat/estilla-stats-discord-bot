@@ -106,7 +106,7 @@ pub async fn get_usernames_from_uuids(uuids: Vec<String>) -> BotResult<Vec<Strin
         .await
         .iter()
         .map(|name_history| match name_history {
-            Ok(name_history) => name_history.last().unwrap().name.clone().replace("_", "\\_"),
+            Ok(name_history) => name_history.last().unwrap().name.clone()/*.replace("_", "\\_")*/,
             Err(e) => e.to_string(),
         })
         .collect();

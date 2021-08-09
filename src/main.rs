@@ -148,8 +148,6 @@ impl EventHandler for Handler {
                 stats are only updated when you log off the server!\n\n\
                 The displayed stats can be changed and if you want a certain \
                 stat to be displayed, you can ask Elzapat to update it.\n\n\
-                Sadly those leaderboards are barely readable on mobile and \
-                a solution has yet to be found. Hope you enjoy nonetheless. \
             ")
         })
         .await
@@ -187,7 +185,7 @@ async fn main() {
         .await
         .expect("Error creating client");
 
-    // let _future = tokio::task::spawn(schedule_leaderboards(http));
+    let _future = tokio::task::spawn(schedule_leaderboards(http));
 
     if let Err(e) = client.start().await {
         println!("Client error: {}", e);

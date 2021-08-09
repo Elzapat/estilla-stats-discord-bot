@@ -101,19 +101,24 @@ where
     S: Into<String> + Copy
 {
     let stat_title = make_stat_title(&mut stat_type.into(), &mut stat_name.clone().into());
-    embed.title(stat_title.clone());
+    // embed.title(stat_title.clone());
 
     embed.color((200, 255, 0));
 
-    let mut ranks = (1..leaderboard.len() + 1).map(|i| {
-        match i {
-            1 => "<:gold_ingot:863081302076424223>\u{2800}".to_string(),
-            2 => "<:iron_ingot:863081302005514260>\u{2800}".to_string(),
-            3 => "<:copper_ingot:863081302079963136>\u{2800}".to_string(),
-            1..=9 => format!("`{} `\u{2800}", i),
-            _ => format!("`{}`\u{2800}", i),
-        }
-    }).collect::<Vec<String>>();
+    // let mut ranks = (1..leaderboard.len() + 1).map(|i| {
+    //     match i {
+    //         1 => "<:gold_ingot:863081302076424223>\u{2800}".to_string(),
+    //         2 => "<:iron_ingot:863081302005514260>\u{2800}".to_string(),
+    //         3 => "<:copper_ingot:863081302079963136>\u{2800}".to_string(),
+    //         1..=9 => format!("`{} `\u{2800}", i),
+    //         _ => format!("`{}`\u{2800}", i),
+    //     }
+    // }).collect::<Vec<String>>();
+    let mut ranks = (1..leaderboard.len() + 1)
+        .collect::<Vec<usize>>()
+        .iter()
+        .map(|x| format!("{:<5}", x))
+        .collect::<Vec<String>>();
     if ranks.is_empty() {
         ranks.push("‎".to_string());
     }
@@ -141,16 +146,19 @@ where
         if name.len() > acc { name.len() } else { acc }
     );
 
-    let mut field_value = format!("`Rank\u{2800}{:<width$}\u{2800}\u{2800}Stat`\n", "Username", width = longest);
+    // let mut field_value = String::from("```           \n");
+    let mut field_value = format!("```\nRank  {:<width$}  Stat\n", "Username", width = longest);
+
+    let stat_title = format!("\u{200B}{:\u{2000}^width$}", stat_title, width = field_value.len());
+
     for i in 0..names.len() {
-        field_value = format!("\n{}{}\u{2800}\u{2800}`{:<width$}`\u{2800}{}\n", field_value, ranks[i], names[i], stats[i], width = longest);
+        field_value = format!("\n{}{} {:<width$}  {}\n", field_value, ranks[i], names[i], stats[i], width = longest);
     }
+    field_value = format!("{}```", field_value);
 
     field_value = field_value.replace("``", "");
 
-    println!("{}", field_value);
-
-    embed.field("field", field_value, false);
+    embed.field(stat_title, field_value, false);
 
     /*
     let mut fields = vec![];
@@ -172,7 +180,7 @@ where
     ]);
     */
 
-    embed.footer(|f| f.text("This is not meant to be viewed on mobile"));
+    // embed.footer(|f| f.text("This is not meant to be viewed on mobile"));
 
     embed
 }
