@@ -185,7 +185,7 @@ async fn main() {
         .await
         .expect("Error creating client");
 
-    let _future = tokio::task::spawn(schedule_leaderboards(http));
+    // let _future = tokio::task::spawn(schedule_leaderboards(http));
 
     if let Err(e) = client.start().await {
         println!("Client error: {}", e);
