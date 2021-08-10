@@ -120,14 +120,14 @@ where
         .map(|x| format!("{:<5}", x))
         .collect::<Vec<String>>();
     if ranks.is_empty() {
-        ranks.push("‎".to_string());
+        ranks.push("\u{200b}".to_string());
     }
 
     let mut names = leaderboard.iter().map(|s| {
         s.username.clone()
     }).collect::<Vec<String>>();
     if names.is_empty() {
-        names.push("‎".to_string());
+        names.push("\u{200b}".to_string());
     }
 
     let mut stats = leaderboard
@@ -139,26 +139,54 @@ where
         })
         .collect::<Vec<String>>();
     if stats.is_empty() {
-        stats.push("‎".to_string());
+        stats.push("\u{200b}".to_string());
     }
 
-    let longest = names.iter().fold(0, |acc, name|
+    const RANKS_TITLE: &str = "Rank";
+    const USERNAMES_TITLE: &str = "Username";
+    const STATS_TITLE: &str = "Stat";
+
+    let longest_name = names.iter().fold(USERNAMES_TITLE.len(), |acc, name|
         if name.len() > acc { name.len() } else { acc }
     );
 
-    // let mut field_value = String::from("```           \n");
-    let mut field_value = format!("```\nRank  {:<width$}  Stat\n", "Username", width = longest);
+    let longest_stat = stats.iter().fold(STATS_TITLE.len(), |acc, stat|
+        if stat.len() > acc { stat.len() } else { acc }
+    );
 
-    let stat_title = format!("\u{200B}{:\u{2000}^width$}", stat_title, width = field_value.len());
+    // let mut field_value = String::from("```           \n");
+    let mut field_value = format!(
+        "{}  {:<name_len$}  {:<stat_len$}",
+        RANKS_TITLE, USERNAMES_TITLE, STATS_TITLE,
+        name_len = longest_name, stat_len = longest_stat
+    );
+
+    let line_len = field_value.len();
+
+    field_value = format!(
+        "```{:^width$}\n\n{}\n",
+        stat_title, field_value,
+        width = line_len
+    );
+    // let stat_title = format!("\u{200B}{:\u{2000}^width$}", stat_title, width = field_value.len());
 
     for i in 0..names.len() {
-        field_value = format!("\n{}{} {:<width$}  {}\n", field_value, ranks[i], names[i], stats[i], width = longest);
+        let line = format!(
+            "{} {:<name_len$} {:<stat_len$}",
+            ranks[i], names[i], stats[i],
+            name_len = longest_name + 1, stat_len = longest_stat
+        );
+        field_value = format!(
+            "\n{}{:<width$}\n",
+            field_value, line,
+            width = line_len
+        );
     }
     field_value = format!("{}```", field_value);
 
     field_value = field_value.replace("``", "");
 
-    embed.field(stat_title, field_value, false);
+    embed.field("\u{200B}", field_value, false);
 
     /*
     let mut fields = vec![];
