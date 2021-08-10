@@ -35,7 +35,7 @@ where
     let stat_name = name_to_minecraft_id(stat_name.into());
 
     let request = format!(
-        "{}/stats?uuid=all&stat_type={}&stat_name={}",
+        "{}/api/v1/stats?uuid=all&stat_type={}&stat_name={}",
         SERVER_ADDRESS, stat_type, stat_name
     );
 

@@ -49,7 +49,7 @@ where
     S: Into<String>
 {
     let request = format!(
-        "{}/stats?uuid={}&stat_type={}&stat_name={}",
+        "{}/api/v1/stats?uuid={}&stat_type={}&stat_name={}",
         SERVER_ADDRESS, uuid.into(), stat_type.into(), stat_name.into()
     );
 

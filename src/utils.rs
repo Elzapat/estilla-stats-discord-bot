@@ -2,7 +2,7 @@ use crate::bot_error::{ BotResult, BotError };
 use serde::Deserialize;
 use futures::{ stream, StreamExt };
 
-pub const SERVER_ADDRESS: &str = "https://api.estillacraft.net";
+pub const SERVER_ADDRESS: &str = "http://estillacraft.net";
 pub const LEADERBOARDS_CHANNEL: u64 = 863383101841735701;
 
 pub fn make_ascii_titlecase(s: &mut str) -> String {
