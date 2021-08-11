@@ -91,6 +91,89 @@ pub fn parse_leaderboard_args(
     LeaderboardCommandArgs { stat_type, stat_name, limit }
 }
 
+pub fn create_leaderboard_message<S>(
+    leaderboard: Vec<Stat>,
+    stat_type: S,
+    stat_name: S,
+) -> String
+where
+    S: Into<String> + Copy
+{
+    let stat_title = make_stat_title(&mut stat_type.into(), &mut stat_name.clone().into());
+
+    let mut ranks = (1..leaderboard.len() + 1)
+        .collect::<Vec<usize>>()
+        .iter()
+        .map(|x| format!("{:<5}", x))
+        .collect::<Vec<String>>();
+    if ranks.is_empty() {
+        ranks.push("\u{200b}".to_string());
+    }
+
+    let mut names = leaderboard.iter().map(|s| {
+        s.username.clone()
+    }).collect::<Vec<String>>();
+    if names.is_empty() {
+        names.push("\u{200b}".to_string());
+    }
+
+    let mut stats = leaderboard
+        .iter()
+        .map(|s| if stat_name.into() == "play time" {
+            minecraft_ticks_to_formatted_time(s.value)
+        } else {
+            s.value.to_formatted_string(&Locale::en)
+        })
+        .collect::<Vec<String>>();
+    if stats.is_empty() {
+        stats.push("\u{200b}".to_string());
+    }
+
+    const RANKS_TITLE: &str = "Rank";
+    const USERNAMES_TITLE: &str = "Username";
+    const STATS_TITLE: &str = "Stat";
+
+    let longest_name = names.iter().fold(USERNAMES_TITLE.len(), |acc, name|
+        if name.len() > acc { name.len() } else { acc }
+    );
+
+    let longest_stat = stats.iter().fold(STATS_TITLE.len(), |acc, stat|
+        if stat.len() > acc { stat.len() } else { acc }
+    );
+
+    // let mut field_value = String::from("```           \n");
+    let mut field_value = format!(
+        "{}  {:<name_len$}  {:<stat_len$}",
+        RANKS_TITLE, USERNAMES_TITLE, STATS_TITLE,
+        name_len = longest_name, stat_len = longest_stat
+    );
+
+    let line_len = field_value.len();
+
+    field_value = format!(
+        "```{:^width$}\n\n{}\n",
+        stat_title, field_value,
+        width = line_len
+    );
+    // let stat_title = format!("\u{200B}{:\u{2000}^width$}", stat_title, width = field_value.len());
+
+    for i in 0..names.len() {
+        let line = format!(
+            "{} {:<name_len$} {:<stat_len$}",
+            ranks[i], names[i], stats[i],
+            name_len = longest_name + 1, stat_len = longest_stat
+        );
+        field_value = format!(
+            "\n{}{:<width$}\n",
+            field_value, line,
+            width = line_len
+        );
+    }
+    field_value = format!("{}```", field_value);
+
+    field_value.replace("``", "")
+}
+
 pub fn create_leaderboard_embed<'a, S>(
     leaderboard: Vec<Stat>,
     stat_type: S,
@@ -164,7 +247,7 @@ where
     let line_len = field_value.len();
 
     field_value = format!(
-        "```{:^width$}\n\n{}\n",
+        "```ARM\n{:^width$}\n\n{}\n",
         stat_title, field_value,
         width = line_len
     );
@@ -177,14 +260,21 @@ where
             name_len = longest_name + 1, stat_len = longest_stat
         );
         field_value = format!(
-            "\n{}{:<width$}\n",
+            "{}{:<width$}\n",
             field_value, line,
             width = line_len
         );
     }
+
+    while field_value.len() > 1024 {
+        let mut lines = field_value.split('\n').collect::<Vec<&str>>();
+        lines.pop();
+        field_value = lines.join("\n");
+    }
+
     field_value = format!("{}```", field_value);
 
-    field_value = field_value.replace("``", "");
+    // field_value = field_value.replace("``", "");
 
     embed.field("\u{200B}", field_value, false);
 
