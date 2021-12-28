@@ -5,7 +5,7 @@
         message_id: 863385396758446114,
     ),
     (
-        stat_type: "broken",
+        stat_type: "custom",
         stat_name: "damage taken",
         message_id: 863385400893898752,
     ),
