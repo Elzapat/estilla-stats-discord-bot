@@ -66,7 +66,8 @@ pub async fn get_username_from_uuid<S>(uuid: S) -> BotResult<String>
     let request = format!("https://api.mojang.com/user/profiles/{}/names", uuid.into());
     println!("{}", request);
 
-    let response = reqwest::get(request).await?;
+    let client = reqwest::Client::new();
+    let response = client.get(request).header("user-agent", "EstillaStats/0.1").send().await?;
 
     if response.status().as_u16() != 200 {
         return Err(BotError::Error("Invalid UUID".to_string()));
@@ -81,14 +82,24 @@ pub async fn get_usernames_from_uuids(uuids: Vec<String>) -> BotResult<Vec<Strin
     const CONCURRENT_REQUESTS: usize = 10;
 
     #[derive(Debug, Deserialize)]
-    struct PlayerName {
-        name: String,
+    struct Player {
+        username: String,
+    }
+    
+    #[derive(Debug, Deserialize)]
+    struct Data {
+        player: Player
+    }
+
+    #[derive(Debug, Deserialize)]
+    struct Response {
+        data: Data,
     }
 
     let client = reqwest::Client::new();
 
     let urls = uuids.iter().map(|uuid|
-        format!("https://api.mojang.com/user/profiles/{}/names", uuid)
+        format!("https://playerdb.co/api/player/minecraft/{uuid}")
     ).collect::<Vec<String>>();
 
     let name_histories = stream::iter(urls)
@@ -96,7 +107,7 @@ pub async fn get_usernames_from_uuids(uuids: Vec<String>) -> BotResult<Vec<Strin
             let client = &client;
             async move {
                 let resp = client.get(url).send().await?;
-                resp.json::<Vec<PlayerName>>().await
+                resp.json::<Response>().await
             }
         })
         .buffered(CONCURRENT_REQUESTS);
@@ -106,7 +117,7 @@ pub async fn get_usernames_from_uuids(uuids: Vec<String>) -> BotResult<Vec<Strin
         .await
         .iter()
         .map(|name_history| match name_history {
-            Ok(name_history) => name_history.last().unwrap().name.clone()/*.replace("_", "\\_")*/,
+            Ok(name_history) => name_history.data.player.username.clone()/*.replace("_", "\\_")*/,
             Err(e) => e.to_string(),
         })
         .collect();
